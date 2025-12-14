@@ -15,13 +15,22 @@ class SignedFormsTab extends StatelessWidget {
     final yesterday = today.subtract(const Duration(days: 1));
 
     final List<SignedForm> forms = [
+      // Newly created form (simulated)
+      SignedForm(
+        id: '0',
+        patientName: 'Sanam Naik',
+        gender: 'Female',
+        age: 32,
+        procedureName: 'Teeth whitening Treatment',
+        timestamp: now.subtract(const Duration(seconds: 2)),
+      ),
       SignedForm(
         id: '1',
         patientName: 'Mrs. Sanam Naik',
         gender: 'Female',
         age: 32,
         procedureName: 'Root Canal Treatment',
-        timestamp: now.subtract(const Duration(seconds: 30)),
+        timestamp: now.subtract(const Duration(minutes: 45)),
       ),
       SignedForm(
         id: '2',
@@ -29,7 +38,7 @@ class SignedFormsTab extends StatelessWidget {
         gender: 'Female',
         age: 32,
         procedureName: 'Scaling and Root Planing (Deep Cleaning)',
-        timestamp: today.add(const Duration(hours: 11)),
+        timestamp: now.subtract(const Duration(hours: 2)),
       ),
       SignedForm(
         id: '3',
@@ -37,7 +46,7 @@ class SignedFormsTab extends StatelessWidget {
         gender: 'Male',
         age: 32,
         procedureName: 'Root Canal Treatment',
-        timestamp: today.add(const Duration(hours: 10, minutes: 22)),
+        timestamp: now.subtract(const Duration(hours: 3, minutes: 15)),
       ),
       SignedForm(
         id: '4',
@@ -45,7 +54,7 @@ class SignedFormsTab extends StatelessWidget {
         gender: 'Male',
         age: 32,
         procedureName: 'Orthodontic Treatment',
-        timestamp: today.add(const Duration(hours: 9, minutes: 30)),
+        timestamp: now.subtract(const Duration(hours: 5, minutes: 30)),
       ),
       SignedForm(
         id: '5',

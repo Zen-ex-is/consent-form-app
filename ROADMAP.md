@@ -40,10 +40,10 @@ A Flutter Android application for tablet devices designed for doctors to manage 
     - [x] Find/Search for existing patients.
     - [x] List all patients.
 
-- [ ] **Consent Forms**
+- [x] Consent Forms
     - [x] Digital consent form interface.
-    - [ ] Capture patient signature.
-    - [ ] Save signed forms locally.
+    - [x] Capture patient signature.
+    - [x] Save signed forms locally.
 
 - [ ] **View Records**
     - [ ] View signed consent forms for a specific patient.

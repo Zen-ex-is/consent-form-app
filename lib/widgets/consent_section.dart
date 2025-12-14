@@ -22,7 +22,7 @@ class ConsentSection extends StatelessWidget {
           Text(
             title,
             style: AppTypography.heading3.copyWith(
-              color: AppColors.blue700,
+              color: AppColors.black,
             ),
           ),
           const SizedBox(height: 8),

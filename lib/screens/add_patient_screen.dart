@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/patient.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../widgets/app_button.dart';
 import 'consent_form_screen.dart';
 
 class AddPatientScreen extends StatefulWidget {
@@ -150,7 +151,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                             ],
                           ),
                         ),
-                        ElevatedButton(
+                        AppButton(
+                          text: 'Add',
+                          icon: Icons.arrow_forward,
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -162,24 +165,6 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                               ),
                             );
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.blue500,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Add',
-                                style: AppTypography.bodySmallSemibold.copyWith(color: AppColors.white),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
-                            ],
-                          ),
                         ),
                       ],
                     ),
