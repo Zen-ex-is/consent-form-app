@@ -95,6 +95,13 @@ class AppTypography {
     color: AppColors.black,
   );
 
+  static const TextStyle heading3 = TextStyle(
+    fontFamily: AppFontFamilies.primary,
+    fontWeight: FontWeight.w600,
+    fontSize: size3,
+    color: AppColors.black,
+  );
+
   // Links
   static const TextStyle microLink = TextStyle(
     fontFamily: AppFontFamilies.primary,
