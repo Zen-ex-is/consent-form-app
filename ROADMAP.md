@@ -45,9 +45,15 @@ A Flutter Android application for tablet devices designed for doctors to manage 
     - [x] Capture patient signature.
     - [x] Save signed forms locally.
 
-- [ ] **View Records**
-    - [ ] View signed consent forms for a specific patient.
+- [x] **View Records**
+    - [x] View signed consent forms for a specific patient.
     - [x] List history of consent forms.
+
+- [x] **Clinic Details / Settings**
+    - [x] Edit Doctor Information.
+    - [x] Edit Clinic Address & Contact.
+    - [x] Set/Update Clinic Logo (Image Picker).
+    - [x] Set PIN.
 
 - [ ] **Data Storage**
     - [ ] Implement local database (e.g., Hive, Drift, or SQFlite) for storing patient data and forms.

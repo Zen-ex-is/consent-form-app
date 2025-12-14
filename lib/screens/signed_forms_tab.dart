@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../data/form_repository.dart';
+import '../models/patient.dart';
 import '../models/signed_form.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/signed_form_card.dart';
+import 'consent_form_screen.dart';
 
 class SignedFormsTab extends StatelessWidget {
   const SignedFormsTab({super.key});
@@ -14,7 +17,11 @@ class SignedFormsTab extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
 
+    // Get saved forms
+    final savedForms = FormRepository().signedForms;
+
     final List<SignedForm> forms = [
+      ...savedForms,
       // Newly created form (simulated)
       SignedForm(
         id: '0',
@@ -170,7 +177,27 @@ class SignedFormsTab extends StatelessWidget {
                       ),
                     ),
                   ),
-                  ...formsForKey.map((form) => SignedFormCard(form: form)),
+                  ...formsForKey.map((form) => GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ConsentFormScreen(
+                                formTitle: form.procedureName,
+                                patient: Patient(
+                                  name: form.patientName,
+                                  gender: form.gender,
+                                  age: form.age,
+                                  phoneNumber: '',
+                                ),
+                                signatureData: form.signatureData,
+                                isViewOnly: true,
+                              ),
+                            ),
+                          );
+                        },
+                        child: SignedFormCard(form: form),
+                      )),
                   const SizedBox(height: 16),
                 ],
               );

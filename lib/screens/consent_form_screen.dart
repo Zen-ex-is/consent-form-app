@@ -1,6 +1,12 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:signature/signature.dart';
+import '../data/clinic_repository.dart';
+import '../data/form_repository.dart';
+import '../models/clinic.dart';
 import '../models/patient.dart';
+import '../models/signed_form.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/app_button.dart';
@@ -11,11 +17,15 @@ import 'home_screen.dart';
 class ConsentFormScreen extends StatefulWidget {
   final String formTitle;
   final Patient? patient;
+  final Uint8List? signatureData;
+  final bool isViewOnly;
 
   const ConsentFormScreen({
     super.key,
     required this.formTitle,
     this.patient,
+    this.signatureData,
+    this.isViewOnly = false,
   });
 
   @override
@@ -195,58 +205,77 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
                     const SizedBox(height: 16),
                     Container(
                       height: 200,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F4FF), // Light blue background
-                        border: Border.all(
-                          color: AppColors.blue500,
-                          style: BorderStyle.solid,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Placeholder text
-                          if (!_hasSigned)
-                            const Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.draw_outlined, color: AppColors.gray400, size: 32),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Sign here',
+                      decoration: widget.signatureData != null
+                          ? null
+                          : BoxDecoration(
+                              color: const Color(0xFFF0F4FF), // Light blue background
+                              border: Border.all(
+                                color: AppColors.blue500,
+                                style: BorderStyle.solid,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                      child: widget.signatureData != null
+                          ? Align(
+                              alignment: Alignment.centerLeft,
+                              child: Image.memory(
+                                widget.signatureData!,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : widget.isViewOnly
+                              ? const Center(
+                                  child: Text(
+                                    'No signature available',
                                     style: TextStyle(color: AppColors.gray400),
                                   ),
-                                ],
-                              ),
+                                )
+                              : Stack(
+                              children: [
+                                // Placeholder text
+                                if (!_hasSigned)
+                                  const Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.draw_outlined,
+                                            color: AppColors.gray400, size: 32),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Sign here',
+                                          style: TextStyle(color: AppColors.gray400),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                // Signature Pad
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Signature(
+                                    controller: _signatureController,
+                                    backgroundColor: Colors.transparent,
+                                    width: double.infinity,
+                                    height: 200,
+                                  ),
+                                ),
+                                // Clear button
+                                if (_hasSigned)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.clear,
+                                          color: AppColors.gray600),
+                                      onPressed: () {
+                                        _signatureController.clear();
+                                        setState(() {
+                                          _hasSigned = false;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                              ],
                             ),
-                          // Signature Pad
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Signature(
-                              controller: _signatureController,
-                              backgroundColor: Colors.transparent,
-                              width: double.infinity,
-                              height: 200,
-                            ),
-                          ),
-                          // Clear button
-                          if (_hasSigned)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: IconButton(
-                                icon: const Icon(Icons.clear, color: AppColors.gray600),
-                                onPressed: () {
-                                  _signatureController.clear();
-                                  setState(() {
-                                    _hasSigned = false;
-                                  });
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
                     ),
                     
                     const SizedBox(height: 32),
@@ -257,46 +286,73 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
                     const SizedBox(height: 40),
                     
                     // Action Buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        AppButton(
-                          text: 'Disagree',
-                          type: AppButtonType.outline,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 16),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        const SizedBox(width: 16),
-                        AppButton(
-                          text: 'Agree',
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 16),
-                          onPressed: _hasSigned
-                              ? () {
-                                  // Show success message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Consent form signed successfully'),
-                                      backgroundColor: AppColors.blue500,
-                                    ),
-                                  );
+                    if (!widget.isViewOnly)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          AppButton(
+                            text: 'Disagree',
+                            type: AppButtonType.outline,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 16),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          const SizedBox(width: 16),
+                          AppButton(
+                            text: 'Agree',
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 16),
+                            onPressed: _hasSigned
+                                ? () async {
+                                    // Capture signature
+                                    final signatureData =
+                                        await _signatureController.toPngBytes();
 
-                                  // Navigate to Signed Forms tab
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const HomeScreen(initialIndex: 1),
-                                    ),
-                                    (route) => false,
-                                  );
-                                }
-                              : null,
-                        ),
-                      ],
-                    ),
+                                    if (signatureData != null &&
+                                        widget.patient != null) {
+                                      // Create SignedForm
+                                      final signedForm = SignedForm(
+                                        id: DateTime.now()
+                                            .millisecondsSinceEpoch
+                                            .toString(),
+                                        patientName: widget.patient!.name,
+                                        gender: widget.patient!.gender,
+                                        age: widget.patient!.age,
+                                        procedureName: widget.formTitle,
+                                        timestamp: DateTime.now(),
+                                        signatureData: signatureData,
+                                      );
+
+                                      // Save to repository
+                                      FormRepository()
+                                          .addSignedForm(signedForm);
+                                    }
+
+                                    if (!context.mounted) return;
+
+                                    // Show success message
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Consent form signed successfully'),
+                                        backgroundColor: AppColors.blue500,
+                                      ),
+                                    );
+
+                                    // Navigate to Signed Forms tab
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HomeScreen(initialIndex: 1),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  }
+                                : null,
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -327,42 +383,58 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
   }
 
   Widget _buildDoctorDetails() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Logo Placeholder
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.blue100),
-          ),
-          child: const Icon(Icons.medical_services_outlined, color: AppColors.blue700, size: 30),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'DOCTOR',
-                style: AppTypography.bodyMicro.copyWith(color: AppColors.gray600),
+    return ValueListenableBuilder<Clinic>(
+      valueListenable: ClinicRepository().clinicNotifier,
+      builder: (context, clinic, child) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Logo Placeholder
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.blue100),
+                image: clinic.logoPath != null
+                    ? DecorationImage(
+                        image: FileImage(File(clinic.logoPath!)),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Praveen Varghese',
-                style: AppTypography.heading3,
+              child: clinic.logoPath == null
+                  ? const Icon(Icons.medical_services_outlined,
+                      color: AppColors.blue700, size: 30)
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'DOCTOR',
+                    style: AppTypography.bodyMicro
+                        .copyWith(color: AppColors.gray600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    clinic.doctorName,
+                    style: AppTypography.heading3,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${clinic.addressLine1},\n${clinic.addressLine2}, ${clinic.city}, ${clinic.state} ${clinic.zipCode}",
+                    style: AppTypography.bodySmall
+                        .copyWith(color: AppColors.gray600),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                "Dr Praveen's Dental Clinic,\nRadha,B4, New Vaddem, Vasco Da Gama, Goa 403802",
-                style: AppTypography.bodySmall.copyWith(color: AppColors.gray600),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 

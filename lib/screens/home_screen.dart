@@ -4,6 +4,7 @@ import '../theme/app_typography.dart';
 import '../widgets/form_card.dart';
 
 import 'add_patient_screen.dart';
+import 'clinic_details_screen.dart';
 import 'signed_forms_tab.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -34,7 +35,14 @@ class HomeScreen extends StatelessWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.person_outline, color: AppColors.black),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ClinicDetailsScreen(),
+                  ),
+                );
+              },
             ),
             const SizedBox(width: 16),
           ],
