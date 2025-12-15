@@ -11,6 +11,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/app_button.dart';
 import '../widgets/consent_section.dart';
+import '../utils/translations.dart';
 
 import 'home_screen.dart';
 
@@ -170,36 +171,36 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
                     const SizedBox(height: 24),
 
                     // Consent Sections
-                    const ConsentSection(
-                      title: '1. Nature and Purpose of the Procedure',
-                      content: 'I understand that: teeth whitening (bleaching) is a cosmetic dental procedure designed to lighten the color of my teeth using professional whitening agents. The goal is to improve the appearance of my smile, but results may vary depending on factors such as tooth structure, age, diet, smoking habits, and existing restorations.',
+                    ConsentSection(
+                      title: Translations.get(_selectedLanguage, 'nature_title'),
+                      content: Translations.get(_selectedLanguage, 'nature_content'),
                     ),
-                    const ConsentSection(
-                      title: '2. Possible Side Effects and Risks',
-                      content: 'I understand that: Tooth sensitivity may occur during or after the procedure. Gum irritation or mild discomfort may occur temporarily. Existing fillings, crowns, veneers, or other restorations will not change color. Overuse or misuse of whitening products may damage teeth or gums. Results are not guaranteed, and multiple sessions may be required.',
+                    ConsentSection(
+                      title: Translations.get(_selectedLanguage, 'risks_title'),
+                      content: Translations.get(_selectedLanguage, 'risks_content'),
                     ),
-                    const ConsentSection(
-                      title: '3. Contraindications',
-                      content: 'I confirm that: I have informed my dentist of: Any allergies, medical conditions, or medications. Pregnancy or breastfeeding (whitening is not recommended). Previous reactions to dental bleaching products.',
+                    ConsentSection(
+                      title: Translations.get(_selectedLanguage, 'contraindications_title'),
+                      content: Translations.get(_selectedLanguage, 'contraindications_content'),
                     ),
-                    const ConsentSection(
-                      title: '4. Post-Treatment Instructions',
-                      content: 'I confirm that: I should avoid coffee, tea, red wine, tobacco, and staining foods for at least 48 hours after treatment. I may use desensitizing toothpaste if sensitivity occurs. I should follow all post-treatment care as instructed by my dentist.',
+                    ConsentSection(
+                      title: Translations.get(_selectedLanguage, 'post_treatment_title'),
+                      content: Translations.get(_selectedLanguage, 'post_treatment_content'),
                     ),
-                    const ConsentSection(
-                      title: '5. Alternatives',
-                      content: 'I have been informed of other treatment options, such as no treatment, veneers, or composite bonding, and I have chosen to proceed with professional teeth whitening.',
+                    ConsentSection(
+                      title: Translations.get(_selectedLanguage, 'alternatives_title'),
+                      content: Translations.get(_selectedLanguage, 'alternatives_content'),
                     ),
-                    const ConsentSection(
-                      title: '6. Acknowledgment and Consent',
-                      content: 'I have had the opportunity to ask questions about the procedure and understand the information provided.\n\nI hereby consent to undergo teeth whitening treatment performed by my dentist and/or authorized staff.',
+                    ConsentSection(
+                      title: Translations.get(_selectedLanguage, 'acknowledgment_title'),
+                      content: Translations.get(_selectedLanguage, 'acknowledgment_content'),
                     ),
                     
                     const SizedBox(height: 32),
                     
                     // Signature Section
                     Text(
-                      'Signature',
+                      Translations.get(_selectedLanguage, 'signature_label'),
                       style: AppTypography.heading3,
                     ),
                     const SizedBox(height: 16),
@@ -224,26 +225,26 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
                               ),
                             )
                           : widget.isViewOnly
-                              ? const Center(
+                              ? Center(
                                   child: Text(
-                                    'No signature available',
-                                    style: TextStyle(color: AppColors.gray400),
+                                    Translations.get(_selectedLanguage, 'no_signature'),
+                                    style: const TextStyle(color: AppColors.gray400),
                                   ),
                                 )
                               : Stack(
                               children: [
                                 // Placeholder text
                                 if (!_hasSigned)
-                                  const Center(
+                                  Center(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.draw_outlined,
+                                        const Icon(Icons.draw_outlined,
                                             color: AppColors.gray400, size: 32),
-                                        SizedBox(height: 8),
+                                        const SizedBox(height: 8),
                                         Text(
-                                          'Sign here',
-                                          style: TextStyle(color: AppColors.gray400),
+                                          Translations.get(_selectedLanguage, 'sign_here'),
+                                          style: const TextStyle(color: AppColors.gray400),
                                         ),
                                       ],
                                     ),
@@ -291,7 +292,7 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           AppButton(
-                            text: 'Disagree',
+                            text: Translations.get(_selectedLanguage, 'disagree'),
                             type: AppButtonType.outline,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24, vertical: 16),
@@ -299,7 +300,7 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
                           ),
                           const SizedBox(width: 16),
                           AppButton(
-                            text: 'Agree',
+                            text: Translations.get(_selectedLanguage, 'agree'),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 32, vertical: 16),
                             onPressed: _hasSigned

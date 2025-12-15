@@ -61,7 +61,7 @@ A Flutter Android application for tablet devices designed for doctors to manage 
 ### Phase 2: Enhancements (Future)
 - [ ] Data synchronization with a backend server.
 - [ ] Export forms to PDF.
-- [ ] Multi-language support (Hindi, Bengali, Gujarati, etc. as per styling).
+- [x] Multi-language support (Hindi, Bengali, Gujarati, etc. as per styling).
 - [ ] User authentication for doctors.
 
 ## Styling Requirements

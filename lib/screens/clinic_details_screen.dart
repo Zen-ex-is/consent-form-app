@@ -5,7 +5,6 @@ import '../data/clinic_repository.dart';
 import '../models/clinic.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
-import '../widgets/app_button.dart';
 
 class ClinicDetailsScreen extends StatefulWidget {
   const ClinicDetailsScreen({super.key});
