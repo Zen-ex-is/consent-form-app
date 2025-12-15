@@ -2,6 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:signature/signature.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../data/clinic_repository.dart';
 import '../data/form_repository.dart';
 import '../models/clinic.dart';
@@ -62,6 +66,155 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
     super.dispose();
   }
 
+  Future<void> _generateAndSharePdf() async {
+    final pdf = pw.Document();
+    final clinic = ClinicRepository().clinicNotifier.value;
+
+    // Load logo if exists
+    pw.MemoryImage? logoImage;
+    if (clinic.logoPath != null) {
+      final file = File(clinic.logoPath!);
+      if (await file.exists()) {
+        logoImage = pw.MemoryImage(await file.readAsBytes());
+      }
+    }
+
+    // Load signature if exists
+    pw.MemoryImage? signatureImage;
+    if (widget.signatureData != null) {
+      signatureImage = pw.MemoryImage(widget.signatureData!);
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return [
+            // Header
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (logoImage != null)
+                  pw.Container(
+                    width: 60,
+                    height: 60,
+                    margin: const pw.EdgeInsets.only(right: 16),
+                    child: pw.Image(logoImage),
+                  ),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('DOCTOR', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                      pw.SizedBox(height: 4),
+                      pw.Text(clinic.doctorName, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        "${clinic.addressLine1},\n${clinic.addressLine2}, ${clinic.city}, ${clinic.state} ${clinic.zipCode}",
+                        style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Divider(),
+            pw.SizedBox(height: 20),
+
+            // Title
+            pw.Center(
+              child: pw.Text(
+                widget.formTitle,
+                style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                textAlign: pw.TextAlign.center,
+              ),
+            ),
+            pw.Center(
+              child: pw.Text(
+                'Consent Form',
+                style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
+              ),
+            ),
+            pw.SizedBox(height: 20),
+
+            // Content Sections
+            _buildPdfSection(Translations.get(_selectedLanguage, 'nature_title'), Translations.get(_selectedLanguage, 'nature_content')),
+            _buildPdfSection(Translations.get(_selectedLanguage, 'risks_title'), Translations.get(_selectedLanguage, 'risks_content')),
+            _buildPdfSection(Translations.get(_selectedLanguage, 'contraindications_title'), Translations.get(_selectedLanguage, 'contraindications_content')),
+            _buildPdfSection(Translations.get(_selectedLanguage, 'post_treatment_title'), Translations.get(_selectedLanguage, 'post_treatment_content')),
+            _buildPdfSection(Translations.get(_selectedLanguage, 'alternatives_title'), Translations.get(_selectedLanguage, 'alternatives_content')),
+            _buildPdfSection(Translations.get(_selectedLanguage, 'acknowledgment_title'), Translations.get(_selectedLanguage, 'acknowledgment_content')),
+
+            pw.SizedBox(height: 30),
+
+            // Signature
+            pw.Text(Translations.get(_selectedLanguage, 'signature_label'), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 10),
+            pw.Container(
+              height: 100,
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: PdfColors.grey400),
+              ),
+              child: signatureImage != null
+                  ? pw.Image(signatureImage, fit: pw.BoxFit.contain)
+                  : pw.Center(child: pw.Text(Translations.get(_selectedLanguage, 'no_signature'), style: const pw.TextStyle(color: PdfColors.grey400))),
+            ),
+            pw.SizedBox(height: 30),
+
+            // Patient Details
+            if (widget.patient != null) ...[
+              pw.Row(
+                children: [
+                  pw.Expanded(child: _buildPdfDetailItem('PATIENT NAME', widget.patient!.name)),
+                  pw.Expanded(child: _buildPdfDetailItem('DATE OF BIRTH', '12 Sept 1987')),
+                  pw.Expanded(child: _buildPdfDetailItem('CONTACT NUMBER', widget.patient!.phoneNumber)),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                children: [
+                  pw.Expanded(child: _buildPdfDetailItem('SEX', widget.patient!.gender)),
+                  pw.Expanded(flex: 2, child: _buildPdfDetailItem('ADDRESS', 'New Vaddem, Vasco, Goa')),
+                ],
+              ),
+            ],
+          ];
+        },
+      ),
+    );
+
+    // Save and Share
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/consent_form.pdf");
+    await file.writeAsBytes(await pdf.save());
+
+    await Share.shareXFiles([XFile(file.path)], text: 'Signed Consent Form - ${widget.formTitle}');
+  }
+
+  pw.Widget _buildPdfSection(String title, String content) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(title, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 4),
+        pw.Text(content, style: const pw.TextStyle(fontSize: 10)),
+        pw.SizedBox(height: 12),
+      ],
+    );
+  }
+
+  pw.Widget _buildPdfDetailItem(String label, String value) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+        pw.SizedBox(height: 2),
+        pw.Text(value, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double textScale = _isLargeFont ? 1.2 : 1.0;
@@ -88,6 +241,13 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
           ],
         ),
         centerTitle: true,
+        actions: [
+          if (widget.isViewOnly)
+            IconButton(
+              icon: const Icon(Icons.share, color: AppColors.black),
+              onPressed: _generateAndSharePdf,
+            ),
+        ],
       ),
       body: MediaQuery(
         data: MediaQuery.of(context).copyWith(
